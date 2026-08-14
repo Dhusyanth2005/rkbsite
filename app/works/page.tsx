@@ -3,13 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import CTASection from "@/components/CTASection";
 import "./workstyle.css";
 
 /* -------------------------------------------------------------------------- */
 /*  Data                                                                      */
 /* -------------------------------------------------------------------------- */
 
-type WorkType = "Independent House" | "Apartment Complex" | "Commercial Building" | "Gated Villas";
+type WorkType = "New Construction" | "Remodeling" | "Renovation";
 
 interface Work {
   id: string;
@@ -28,72 +29,72 @@ const WORKS: Work[] = [
   {
     id: "thevar-residence",
     title: "Thevar Residence",
-    type: "Independent House",
+    type: "New Construction",
     year: 2019,
     locality: "Saravanampatti",
     district: "Coimbatore",
     description:
-      "A three-bedroom home planned around a shaded central courtyard, built for a family who wanted natural light in every room without losing privacy from the street. The brief called for room to grow, so the first floor was structurally prepared for a future extension.",
+      "A complete ground-up three-bedroom home planned around a shaded central courtyard, built for a family who wanted natural light in every room without losing privacy from the street. The first floor was structurally engineered for future expansion.",
     seed: "rkb-work-1",
   },
   {
-    id: "kaveri-apartments",
-    title: "Kaveri Apartments",
-    type: "Apartment Complex",
+    id: "kaveri-residence",
+    title: "Kaveri Residence",
+    type: "Renovation",
     year: 2021,
     locality: "Perundurai",
     district: "Erode",
     description:
-      "Sixteen units across four floors, designed with cross-ventilated layouts and a shared terrace garden. Load-bearing walls were positioned to allow every unit an unobstructed view of the surrounding paddy fields.",
+      "Comprehensive structural restoration and weatherproofing of an aging family home, repairing foundation wear, upgrading plumbing and electrical networks, and renewing all exterior surface finishes.",
     seed: "rkb-work-2",
   },
   {
-    id: "priyan-commercial-plaza",
-    title: "Priyan Commercial Plaza",
-    type: "Commercial Building",
+    id: "priyan-home-remodel",
+    title: "Priyan Home Remodel",
+    type: "Remodeling",
     year: 2022,
     locality: "Fairlands",
     district: "Salem",
     description:
-      "A ground-plus-three retail and office block built to a tight nine-month schedule ahead of the client's lease commitments. Wide floor plates and a dedicated service core keep each tenant's fit-out independent of the next.",
+      "Full interior transformation and layout reconfiguration, creating open-concept living and dining spaces, a custom modern modular kitchen, and upgraded floor plans tailored for contemporary living.",
     seed: "rkb-work-3",
   },
   {
-    id: "bala-family-home",
-    title: "Bala Family Home",
-    type: "Independent House",
+    id: "bala-family-villa",
+    title: "Bala Family Villa",
+    type: "New Construction",
     year: 2018,
     locality: "Anna Nagar",
     district: "Madurai",
     description:
-      "A compact two-storey house on a narrow corner plot, using a stepped facade to bring light into every room despite the site's tight setbacks. The staircase was placed along the party wall to free up the living spaces on both floors.",
+      "A turnkey two-storey residential build on a corner plot, built from foundation excavation to final painting with stepped terraces and integrated natural ventilation.",
     seed: "rkb-work-4",
   },
   {
-    id: "kaliyaperumal-enclave",
-    title: "Kaliyaperumal Enclave",
-    type: "Gated Villas",
+    id: "kaliyaperumal-estate",
+    title: "Kaliyaperumal Estate",
+    type: "Renovation",
     year: 2023,
     locality: "Vadavalli",
     district: "Coimbatore",
     description:
-      "Eight independent villas sharing a common access road, boundary wall and rainwater harvesting system, while each home was designed separately to its owner's plan. Construction was sequenced so occupied villas were never disturbed by ongoing work next door.",
+      "Full-scale structural restoration of an older estate build, replacing degraded roof framing, reinforcing load-bearing masonry, and applying durable waterproofing systems throughout.",
     seed: "rkb-work-5",
   },
   {
-    id: "mani-heights",
-    title: "Mani Heights",
-    type: "Apartment Complex",
+    id: "mani-residence-remodel",
+    title: "Mani Residence Remodel",
+    type: "Remodeling",
     year: 2020,
     locality: "Avinashi Road",
     district: "Tiruppur",
     description:
-      "A twenty-two unit residential tower built above a covered parking podium, with a rooftop water tank sized for three days of independent supply. Unit sizes were kept deliberately varied, from single-bedroom to three-bedroom, within one shared structure.",
+      "Complete interior redesign and structural room addition, converting unused patio areas into an expanded master suite and modernizing all bathroom suites and finishes.",
     seed: "rkb-work-6",
   },
 ];
 
-const WORK_TYPES = Array.from(new Set(WORKS.map((w) => w.type))) as WorkType[];
+const WORK_TYPES: WorkType[] = ["New Construction", "Remodeling", "Renovation"];
 
 function sheetNumberFor(work: Work) {
   const idx = WORKS.findIndex((w) => w.id === work.id) + 1;
@@ -140,19 +141,6 @@ export default function WorksPage() {
             toggleActions: "play none none reverse",
           },
         });
-      });
-
-      gsap.from(".works-cta .cta-strip", {
-        y: 40,
-        opacity: 0,
-        scale: 0.97,
-        duration: 0.9,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: ".works-cta",
-          start: "top 85%",
-          toggleActions: "play none none reverse",
-        },
       });
     }, containerRef);
 
@@ -204,23 +192,11 @@ export default function WorksPage() {
         </div>
       </section>
 
-      <section className="section-pad works-cta">
-        <div className="container">
-          <div className="cta-strip">
-            <div>
-              <h3>Have land, and a home in mind?</h3>
-              <p>Every project on this page started as a plot and a conversation. Yours can too.</p>
-            </div>
-            <a
-              href="tel:+910000000000"
-              className="btn"
-              style={{ background: "var(--color-on-accent)", color: "var(--color-accent)" }}
-            >
-              Call us today
-            </a>
-          </div>
-        </div>
-      </section>
+      <CTASection
+        title="Have land, and a home in mind?"
+        description="Every project on this page started as a plot and a conversation. Yours can too."
+        className="works-cta"
+      />
     </div>
   );
 }

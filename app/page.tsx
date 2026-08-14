@@ -1,8 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import CTASection from "@/components/CTASection";
 
 /* -------------------------------------------------------------------------- */
 /*  Utilities                                                                 */
@@ -95,7 +97,7 @@ export default function Home() {
       <Works />
       <WhyUs />
       <Certifications />
-      <CTA />
+      <CTASection />
     </>
   );
 }
@@ -811,59 +813,6 @@ function Certifications() {
               <span className="cert-seal-label">{cert.label}</span>
             </div>
           ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ----------------------------------- CTA ----------------------------------- */
-
-function CTA() {
-  const ref = useRef<HTMLElement | null>(null);
-
-  useEffect(() => {
-    gsap.registerPlugin(ScrollTrigger);
-
-    const ctx = gsap.context(() => {
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: ref.current,
-          start: "top 80%",
-          toggleActions: "play none none reverse",
-        },
-      });
-
-      tl.from(".cta-strip", {
-        y: 50,
-        scale: 0.95,
-        opacity: 0,
-        duration: 1.0,
-        ease: "power3.out",
-      })
-        .from(".cta-strip h3", { y: 20, opacity: 0, duration: 0.7, ease: "power3.out" }, "-=0.6")
-        .from(".cta-strip p", { y: 15, opacity: 0, duration: 0.6, ease: "power3.out" }, "-=0.5")
-        .from(".cta-strip .btn", { scale: 0.85, opacity: 0, duration: 0.7, ease: "back.out(1.8)" }, "-=0.5");
-    }, ref);
-
-    return () => ctx.revert();
-  }, []);
-
-  return (
-    <section id="cta" className="section-pad" ref={ref}>
-      <div className="container">
-        <div className="cta-strip">
-          <div>
-            <h3>Ready to build your dream home?</h3>
-            <p>Call us today and let&apos;s turn your land into a home you&apos;ll love for generations.</p>
-          </div>
-          <a
-            href="tel:+910000000000"
-            className="btn"
-            style={{ background: "var(--color-on-accent)", color: "var(--color-accent)" }}
-          >
-            Call us today
-          </a>
         </div>
       </div>
     </section>
