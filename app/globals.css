@@ -14,7 +14,7 @@
   --color-secondary: #66dc9f;
   --color-secondary-alt: #7fe389;
   --color-text: #000000;
-  --color-accent: #126266; /* dark green */
+  --color-accent: #0e857b; /* elegant medium emerald teal */
 
   /* Derived surface + utility tokens (light) */
   --color-bg-elevated: #f5f9f7;
@@ -25,7 +25,7 @@
   --color-border-strong: rgba(0, 0, 0, 0.22);
   --color-overlay-bg: rgba(255, 255, 255, 0.86);
   --color-on-accent: #ffffff;
-  --shadow-soft: 0 12px 32px -12px rgba(18, 98, 102, 0.18);
+  --shadow-soft: 0 12px 32px -12px rgba(14, 133, 123, 0.2);
   --shadow-card: 0 18px 48px -20px rgba(0, 0, 0, 0.28);
 
   /* Typography */
@@ -257,7 +257,7 @@ section {
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 18px 40px -14px rgba(18, 98, 102, 0.4);
+  box-shadow: 0 18px 40px -14px rgba(14, 133, 123, 0.38);
 }
 
 .btn-ghost {
