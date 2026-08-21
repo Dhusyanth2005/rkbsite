@@ -14,6 +14,10 @@ export interface HeroData {
   video_light?: CloudinaryMedia;
   video_dark?: CloudinaryMedia;
   poster?: CloudinaryMedia;
+  about_image?: CloudinaryMedia;
+  service_new_construction?: CloudinaryMedia;
+  service_remodeling?: CloudinaryMedia;
+  service_renovation?: CloudinaryMedia;
 }
 
 export interface AboutHeroData {

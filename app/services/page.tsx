@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import CTASection from "@/components/CTASection";
+import { siteApi, HeroData } from "@/services/api";
 import "./servicestyle.css";
 
 /* ==========================================================================
@@ -330,6 +331,28 @@ function ServiceIntro() {
 function ServiceTypeGallery() {
   const ref = useRef<HTMLElement | null>(null);
   const [active, setActive] = useState(0);
+  const [heroData, setHeroData] = useState<HeroData | null>(null);
+
+  useEffect(() => {
+    siteApi.getHero().then((data) => {
+      if (data) setHeroData(data);
+    }).catch(() => {});
+  }, []);
+
+  const items = SERVICE_TYPES.map((item) => {
+    let customImage = "";
+    if (item.type === "New Construction" && heroData?.service_new_construction?.url) {
+      customImage = heroData.service_new_construction.url;
+    } else if (item.type === "Remodeling" && heroData?.service_remodeling?.url) {
+      customImage = heroData.service_remodeling.url;
+    } else if (item.type === "Renovation" && heroData?.service_renovation?.url) {
+      customImage = heroData.service_renovation.url;
+    }
+    return {
+      ...item,
+      image: customImage || item.image,
+    };
+  });
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -372,7 +395,7 @@ function ServiceTypeGallery() {
         </div>
 
         <div className="svc-gallery-track" role="list">
-          {SERVICE_TYPES.map((item, i) => {
+          {items.map((item, i) => {
             const isActive = active === i;
             return (
               <button

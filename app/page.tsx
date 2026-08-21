@@ -251,13 +251,17 @@ function About() {
   const [aboutPhoto, setAboutPhoto] = useState<string>("");
 
   useEffect(() => {
-    siteApi.getAbout().then((data) => {
-      if (data?.leadership?.photo?.url) {
-        setAboutPhoto(data.leadership.photo.url);
-      } else if (data?.hero?.portrait?.url) {
-        setAboutPhoto(data.hero.portrait.url);
-      }
-    });
+    Promise.all([siteApi.getHero(), siteApi.getAbout()])
+      .then(([heroData, aboutData]) => {
+        if (heroData?.about_image?.url) {
+          setAboutPhoto(heroData.about_image.url);
+        } else if (aboutData?.leadership?.photo?.url) {
+          setAboutPhoto(aboutData.leadership.photo.url);
+        } else if (aboutData?.hero?.portrait?.url) {
+          setAboutPhoto(aboutData.hero.portrait.url);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
