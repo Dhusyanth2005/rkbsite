@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import CTASection from "@/components/CTASection";
+import { siteApi, HeroData, WorkItem } from "@/services/api";
 
 /* -------------------------------------------------------------------------- */
 /*  Utilities                                                                 */
@@ -75,15 +76,6 @@ const LEGACY = [
   },
 ];
 
-const WORKS = [
-  { name: "Thevar Residence", meta: "Independent House · Coimbatore", seed: "rkb-work-1" },
-  { name: "Kaveri Apartments", meta: "Apartment Complex · Erode", seed: "rkb-work-2" },
-  { name: "Priyan Commercial Plaza", meta: "Commercial Building · Salem", seed: "rkb-work-3" },
-  { name: "Bala Family Home", meta: "Independent House · Madurai", seed: "rkb-work-4" },
-  { name: "Kaliyaperumal Enclave", meta: "Gated Villas · Coimbatore", seed: "rkb-work-5" },
-  { name: "Mani Heights", meta: "Apartment Complex · Tiruppur", seed: "rkb-work-6" },
-];
-
 /* -------------------------------------------------------------------------- */
 /*  Page                                                                      */
 /* -------------------------------------------------------------------------- */
@@ -106,6 +98,15 @@ export default function Home() {
 
 function Hero() {
   const containerRef = useRef<HTMLElement | null>(null);
+  const [heroData, setHeroData] = useState<HeroData | null>(null);
+
+  useEffect(() => {
+    siteApi.getHero().then((data) => {
+      if (data && (data.video_light?.url || data.video_dark?.url || data.poster?.url)) {
+        setHeroData(data);
+      }
+    });
+  }, []);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -166,29 +167,39 @@ function Hero() {
     return () => ctx.revert();
   }, []);
 
+  const videoLightSrc = heroData?.video_light?.url || "";
+  const videoDarkSrc = heroData?.video_dark?.url || "";
+  const posterSrc = heroData?.poster?.url || undefined;
+
   return (
     <section className="hero" id="home" ref={containerRef}>
       <div className="hero-media">
-        <video
-          className="hero-video hero-video-light"
-          autoPlay
-          muted
-          loop
-          playsInline
-          poster="https://picsum.photos/seed/rkb-hero/1600/1000"
-        >
-          <source src="/rkbhero.mp4" type="video/mp4" />
-        </video>
-        <video
-          className="hero-video hero-video-dark"
-          autoPlay
-          muted
-          loop
-          playsInline
-          poster="https://picsum.photos/seed/rkb-hero/1600/1000"
-        >
-          <source src="/rkbherodark.mp4" type="video/mp4" />
-        </video>
+        {videoLightSrc && (
+          <video
+            key={videoLightSrc}
+            className="hero-video hero-video-light"
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster={posterSrc}
+          >
+            <source src={videoLightSrc} type="video/mp4" />
+          </video>
+        )}
+        {videoDarkSrc && (
+          <video
+            key={videoDarkSrc}
+            className="hero-video hero-video-dark"
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster={posterSrc}
+          >
+            <source src={videoDarkSrc} type="video/mp4" />
+          </video>
+        )}
       </div>
 
       <div className="container hero-content">
@@ -237,6 +248,17 @@ function Hero() {
 
 function About() {
   const ref = useRef<HTMLElement | null>(null);
+  const [aboutPhoto, setAboutPhoto] = useState<string>("");
+
+  useEffect(() => {
+    siteApi.getAbout().then((data) => {
+      if (data?.leadership?.photo?.url) {
+        setAboutPhoto(data.leadership.photo.url);
+      } else if (data?.hero?.portrait?.url) {
+        setAboutPhoto(data.hero.portrait.url);
+      }
+    });
+  }, []);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -300,7 +322,7 @@ function About() {
     }, ref);
 
     return () => ctx.revert();
-  }, []);
+  }, [aboutPhoto]);
 
   return (
     <section id="about" className="section-pad" ref={ref}>
@@ -338,11 +360,15 @@ function About() {
 
         <div className="about-image-wrap dim-frame">
           <div className="about-image">
-            <img
-              src="https://picsum.photos/seed/rkb-about/900/1100"
-              alt="A house built by R K B Builders, showcasing their architectural craftsmanship"
-              loading="lazy"
-            />
+            {aboutPhoto ? (
+              <img
+                src={aboutPhoto}
+                alt="A house built by R K B Builders, showcasing their architectural craftsmanship"
+                loading="lazy"
+              />
+            ) : (
+              <div style={{ width: "100%", height: "100%", minHeight: "340px", background: "rgba(16, 112, 104, 0.08)" }} />
+            )}
           </div>
           <div className="about-tag">
             <b>85+</b>
@@ -497,6 +523,28 @@ function Works() {
   const [progress, setProgress] = useState(0);
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
+  const [worksList, setWorksList] = useState<Array<{ name: string; meta: string; image: string }>>([]);
+
+  useEffect(() => {
+    siteApi.getWorks().then((apiWorks) => {
+      const published = apiWorks.filter((w) => w.published !== false);
+      if (published.length > 0) {
+        setWorksList(
+          published.map((w) => {
+            const img =
+              w.thumbnail?.url ||
+              (w.photos && w.photos.length > 0 ? w.photos[0].url : '') ||
+              '';
+            return {
+              name: w.title,
+              meta: `${w.type} · ${w.locality || w.district || 'Tamil Nadu'}`,
+              image: img,
+            };
+          })
+        );
+      }
+    });
+  }, []);
 
   function updateProgress() {
     const el = trackRef.current;
@@ -519,38 +567,47 @@ function Works() {
   useEffect(() => {
     updateProgress();
 
+    if (!ref.current) return;
+
     gsap.registerPlugin(ScrollTrigger);
 
     const ctx = gsap.context(() => {
-      gsap.from(".works-header", {
-        y: 35,
-        opacity: 0,
-        duration: 0.9,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: ".works-header",
-          start: "top 82%",
-          toggleActions: "play none none reverse",
-        },
-      });
+      const header = ref.current?.querySelector(".works-header");
+      if (header) {
+        gsap.from(header, {
+          y: 35,
+          opacity: 0,
+          duration: 0.9,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: header,
+            start: "top 82%",
+            toggleActions: "play none none reverse",
+          },
+        });
+      }
 
-      gsap.from(".work-card", {
-        y: 50,
-        opacity: 0,
-        scale: 0.93,
-        stagger: 0.12,
-        duration: 0.9,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: ".carousel-viewport",
-          start: "top 80%",
-          toggleActions: "play none none reverse",
-        },
-      });
+      const viewport = ref.current?.querySelector(".carousel-viewport");
+      const cards = ref.current?.querySelectorAll(".work-card");
+      if (viewport && cards && cards.length > 0) {
+        gsap.from(cards, {
+          y: 50,
+          opacity: 0,
+          scale: 0.93,
+          stagger: 0.12,
+          duration: 0.9,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: viewport,
+            start: "top 80%",
+            toggleActions: "play none none reverse",
+          },
+        });
+      }
     }, ref);
 
     return () => ctx.revert();
-  }, []);
+  }, [worksList]);
 
   return (
     <section id="works" className="section-pad" ref={ref}>
@@ -587,28 +644,40 @@ function Works() {
           </div>
         </div>
 
-        <div className="carousel-viewport" ref={trackRef} onScroll={updateProgress}>
-          <div className="carousel-track">
-            {WORKS.map((work, i) => (
-              <article className="work-card" key={work.name}>
-                <img
-                  src={`https://picsum.photos/seed/${work.seed}/1200/750`}
-                  alt={`${work.name} — completed project by R K B Builders`}
-                  loading="lazy"
-                />
-                <div className="work-card-overlay">
-                  <span className="work-card-index">{String(i + 1).padStart(2, "0")} / {String(WORKS.length).padStart(2, "0")}</span>
-                  <p className="work-card-name">{work.name}</p>
-                  <p className="work-card-meta">{work.meta}</p>
-                </div>
-              </article>
-            ))}
+        {worksList.length === 0 ? (
+          <div style={{ padding: "3.5rem 1rem", textAlign: "center", color: "var(--dim-sub, #888)" }}>
+            <p style={{ fontSize: "1rem" }}>Projects archive is being updated.</p>
           </div>
-        </div>
+        ) : (
+          <>
+            <div className="carousel-viewport" ref={trackRef} onScroll={updateProgress}>
+              <div className="carousel-track">
+                {worksList.map((work, i) => (
+                  <article className="work-card" key={`${work.name}-${i}`}>
+                    {work.image ? (
+                      <img
+                        src={work.image}
+                        alt={`${work.name} — completed project by R K B Builders`}
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div style={{ width: "100%", height: "100%", minHeight: "360px", background: "rgba(16,112,104,0.08)" }} />
+                    )}
+                    <div className="work-card-overlay">
+                      <span className="work-card-index">{String(i + 1).padStart(2, "0")} / {String(worksList.length).padStart(2, "0")}</span>
+                      <p className="work-card-name">{work.name}</p>
+                      <p className="work-card-meta">{work.meta}</p>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
 
-        <div className="carousel-progress" aria-hidden="true">
-          <div className="carousel-progress-bar" style={{ width: `${Math.max(progress, 8)}%` }} />
-        </div>
+            <div className="carousel-progress" aria-hidden="true">
+              <div className="carousel-progress-bar" style={{ width: `${Math.max(progress, 8)}%` }} />
+            </div>
+          </>
+        )}
 
         <div className="works-cta-row">
           <a href="/works" className="works-cta-link">

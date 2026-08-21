@@ -208,19 +208,22 @@ const SERVICES = [
 
 const SERVICE_TYPES = [
   {
-    image: "https://picsum.photos/seed/rkb-new-construction/1000/1300",
+    type: "New Construction",
     label: "New Construction",
     desc: "Ground-up builds engineered and executed from the first foundation line to final handover.",
+    image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
   },
   {
-    image: "https://picsum.photos/seed/rkb-remodeling/1000/1300",
+    type: "Remodeling",
     label: "Remodeling",
     desc: "Reshaping existing spaces — structural changes, layout shifts, and full interior transformation.",
+    image: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=80",
   },
   {
-    image: "https://picsum.photos/seed/rkb-renovation/1000/1300",
+    type: "Renovation",
     label: "Renovation",
     desc: "Restoring and upgrading older builds with modern systems, finishes, and lasting durability.",
+    image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1200&q=80",
   },
 ];
 
@@ -332,10 +335,10 @@ function ServiceTypeGallery() {
     gsap.registerPlugin(ScrollTrigger);
     const ctx = gsap.context(() => {
       gsap.from(".svc-gallery-header > *", {
-        y: 30,
+        y: 28,
         opacity: 0,
-        stagger: 0.1,
-        duration: 0.8,
+        stagger: 0.12,
+        duration: 0.85,
         ease: "power3.out",
         scrollTrigger: {
           trigger: ".svc-gallery-header",

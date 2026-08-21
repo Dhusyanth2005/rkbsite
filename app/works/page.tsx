@@ -4,15 +4,21 @@ import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import CTASection from "@/components/CTASection";
+import { siteApi, WorkItem } from "@/services/api";
 import "./workstyle.css";
 
 /* -------------------------------------------------------------------------- */
-/*  Data                                                                      */
+/*  Data & Types                                                              */
 /* -------------------------------------------------------------------------- */
 
 type WorkType = "New Construction" | "Remodeling" | "Renovation";
 
-interface Work {
+interface DisplayPhoto {
+  label: string;
+  url: string;
+}
+
+interface DisplayWork {
   id: string;
   title: string;
   type: WorkType;
@@ -20,85 +26,13 @@ interface Work {
   locality: string;
   district: string;
   description: string;
-  seed: string;
+  photos: DisplayPhoto[];
 }
-
-const PHOTO_LABELS = ["Exterior", "Living Area", "Facade Detail", "Interior", "Evening View"];
-
-const WORKS: Work[] = [
-  {
-    id: "thevar-residence",
-    title: "Thevar Residence",
-    type: "New Construction",
-    year: 2019,
-    locality: "Saravanampatti",
-    district: "Coimbatore",
-    description:
-      "A complete ground-up three-bedroom home planned around a shaded central courtyard, built for a family who wanted natural light in every room without losing privacy from the street. The first floor was structurally engineered for future expansion.",
-    seed: "rkb-work-1",
-  },
-  {
-    id: "kaveri-residence",
-    title: "Kaveri Residence",
-    type: "Renovation",
-    year: 2021,
-    locality: "Perundurai",
-    district: "Erode",
-    description:
-      "Comprehensive structural restoration and weatherproofing of an aging family home, repairing foundation wear, upgrading plumbing and electrical networks, and renewing all exterior surface finishes.",
-    seed: "rkb-work-2",
-  },
-  {
-    id: "priyan-home-remodel",
-    title: "Priyan Home Remodel",
-    type: "Remodeling",
-    year: 2022,
-    locality: "Fairlands",
-    district: "Salem",
-    description:
-      "Full interior transformation and layout reconfiguration, creating open-concept living and dining spaces, a custom modern modular kitchen, and upgraded floor plans tailored for contemporary living.",
-    seed: "rkb-work-3",
-  },
-  {
-    id: "bala-family-villa",
-    title: "Bala Family Villa",
-    type: "New Construction",
-    year: 2018,
-    locality: "Anna Nagar",
-    district: "Madurai",
-    description:
-      "A turnkey two-storey residential build on a corner plot, built from foundation excavation to final painting with stepped terraces and integrated natural ventilation.",
-    seed: "rkb-work-4",
-  },
-  {
-    id: "kaliyaperumal-estate",
-    title: "Kaliyaperumal Estate",
-    type: "Renovation",
-    year: 2023,
-    locality: "Vadavalli",
-    district: "Coimbatore",
-    description:
-      "Full-scale structural restoration of an older estate build, replacing degraded roof framing, reinforcing load-bearing masonry, and applying durable waterproofing systems throughout.",
-    seed: "rkb-work-5",
-  },
-  {
-    id: "mani-residence-remodel",
-    title: "Mani Residence Remodel",
-    type: "Remodeling",
-    year: 2020,
-    locality: "Avinashi Road",
-    district: "Tiruppur",
-    description:
-      "Complete interior redesign and structural room addition, converting unused patio areas into an expanded master suite and modernizing all bathroom suites and finishes.",
-    seed: "rkb-work-6",
-  },
-];
 
 const WORK_TYPES: WorkType[] = ["New Construction", "Remodeling", "Renovation"];
 
-function sheetNumberFor(work: Work) {
-  const idx = WORKS.findIndex((w) => w.id === work.id) + 1;
-  return `${String(idx).padStart(2, "0")} / ${String(WORKS.length).padStart(2, "0")}`;
+function sheetNumberFor(idx: number, total: number) {
+  return `${String(idx + 1).padStart(2, "0")} / ${String(total).padStart(2, "0")}`;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -108,6 +42,53 @@ function sheetNumberFor(work: Work) {
 export default function WorksPage() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [filter, setFilter] = useState<WorkType | "All">("All");
+  const [worksList, setWorksList] = useState<DisplayWork[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    siteApi
+      .getWorks()
+      .then((apiWorks) => {
+        const published = apiWorks.filter((w) => w.published !== false);
+        const mapped: DisplayWork[] = published.map((w, index) => {
+          const photos: DisplayPhoto[] = [];
+
+          if (w.thumbnail?.url) {
+            photos.push({
+              label: "Thumbnail",
+              url: w.thumbnail.url,
+            });
+          }
+
+          if (w.photos && w.photos.length > 0) {
+            w.photos.forEach((p, pIdx) => {
+              if (p.url && p.url !== w.thumbnail?.url) {
+                photos.push({
+                  label: p.label || p.alt || `Photo ${pIdx + 1}`,
+                  url: p.url,
+                });
+              }
+            });
+          }
+
+          return {
+            id: w.id || `work-${index}`,
+            title: w.title,
+            type: w.type || "New Construction",
+            year: w.year || new Date().getFullYear(),
+            locality: w.locality || "",
+            district: w.district || "",
+            description: w.description || "",
+            photos,
+          };
+        });
+
+        setWorksList(mapped);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -145,7 +126,7 @@ export default function WorksPage() {
     }, containerRef);
 
     return () => ctx.revert();
-  }, []);
+  }, [worksList]);
 
   useEffect(() => {
     // Layout shifts when a sheet is hidden/shown — refresh trigger positions.
@@ -155,7 +136,7 @@ export default function WorksPage() {
 
   return (
     <div ref={containerRef}>
-      <WorksHero total={WORKS.length} />
+      <WorksHero total={worksList.length} />
 
       <section className="section-pad works-list-section">
         <div className="container">
@@ -179,16 +160,30 @@ export default function WorksPage() {
             ))}
           </div>
 
-          <div className="works-sheets">
-            {WORKS.map((work, i) => (
-              <WorkSheet
-                key={work.id}
-                work={work}
-                reversed={i % 2 === 1}
-                hidden={filter !== "All" && filter !== work.type}
-              />
-            ))}
-          </div>
+          {loading ? (
+            <div style={{ padding: "4rem 0", textAlign: "center", color: "var(--dim-sub, #888)" }}>
+              Loading works from archive…
+            </div>
+          ) : worksList.length === 0 ? (
+            <div style={{ padding: "4rem 0", textAlign: "center", color: "var(--dim-sub, #888)" }}>
+              <p style={{ fontSize: "1.1rem", fontWeight: 600 }}>No projects published yet.</p>
+              <p style={{ marginTop: "0.5rem", fontSize: "0.9rem" }}>
+                Add and publish projects from the admin panel to display them here.
+              </p>
+            </div>
+          ) : (
+            <div className="works-sheets">
+              {worksList.map((work, i) => (
+                <WorkSheet
+                  key={work.id || `${work.title}-${i}`}
+                  work={work}
+                  sheetNumber={sheetNumberFor(i, worksList.length)}
+                  reversed={i % 2 === 1}
+                  hidden={filter !== "All" && filter !== work.type}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -226,17 +221,17 @@ function WorksHero({ total }: { total: number }) {
 
 function WorkSheet({
   work,
+  sheetNumber,
   reversed,
   hidden,
 }: {
-  work: Work;
+  work: DisplayWork;
+  sheetNumber: string;
   reversed: boolean;
   hidden: boolean;
 }) {
   const [active, setActive] = useState(0);
-  const images = PHOTO_LABELS.map(
-    (_, i) => `https://picsum.photos/seed/${work.seed}-${i + 1}/1200/900`
-  );
+  const photos = work.photos || [];
 
   return (
     <article
@@ -245,32 +240,53 @@ function WorkSheet({
     >
       <div className="work-sheet-gallery">
         <div className="gallery-main dim-frame">
-          <span className="gallery-sheet-tag">Sheet {sheetNumberFor(work)}</span>
-          <img
-            key={active}
-            src={images[active]}
-            alt={`${work.title} — ${PHOTO_LABELS[active]}`}
-            className="gallery-fade-in"
-          />
-          <span className="gallery-caption">
-            {PHOTO_LABELS[active]} · {String(active + 1).padStart(2, "0")} / {String(images.length).padStart(2, "0")}
-          </span>
+          <span className="gallery-sheet-tag">Sheet {sheetNumber}</span>
+          {photos.length > 0 && photos[active] ? (
+            <>
+              <img
+                key={`${photos[active].url}-${active}`}
+                src={photos[active].url}
+                alt={`${work.title} — ${photos[active].label}`}
+                className="gallery-fade-in"
+              />
+              <span className="gallery-caption">
+                {photos[active].label} · {String(active + 1).padStart(2, "0")} / {String(photos.length).padStart(2, "0")}
+              </span>
+            </>
+          ) : (
+            <div
+              style={{
+                width: "100%",
+                height: "320px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "rgba(16, 112, 104, 0.05)",
+                color: "var(--dim-sub, #888)",
+                fontSize: "0.9rem",
+              }}
+            >
+              No photo available
+            </div>
+          )}
         </div>
 
-        <div className="gallery-thumbs">
-          {images.map((src, i) => (
-            <button
-              key={i}
-              type="button"
-              className={`gallery-thumb${i === active ? " active" : ""}`}
-              onClick={() => setActive(i)}
-              aria-label={`Show ${PHOTO_LABELS[i]} photo of ${work.title}`}
-              aria-pressed={i === active}
-            >
-              <img src={src} alt="" loading="lazy" />
-            </button>
-          ))}
-        </div>
+        {photos.length > 1 && (
+          <div className="gallery-thumbs">
+            {photos.map((item, i) => (
+              <button
+                key={`${item.url}-${i}`}
+                type="button"
+                className={`gallery-thumb${i === active ? " active" : ""}`}
+                onClick={() => setActive(i)}
+                aria-label={`Show ${item.label} photo of ${work.title}`}
+                aria-pressed={i === active}
+              >
+                <img src={item.url} alt="" loading="lazy" />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="work-sheet-info">
@@ -282,7 +298,7 @@ function WorkSheet({
           <div className="titleblock-row">
             <span className="titleblock-label">Location</span>
             <span className="titleblock-value">
-              {work.locality}, {work.district}
+              {[work.locality, work.district].filter(Boolean).join(", ") || "Tamil Nadu"}
             </span>
           </div>
           <div className="titleblock-row">
@@ -291,7 +307,7 @@ function WorkSheet({
           </div>
           <div className="titleblock-row">
             <span className="titleblock-label">Sheet</span>
-            <span className="titleblock-value">{sheetNumberFor(work)}</span>
+            <span className="titleblock-value">{sheetNumber}</span>
           </div>
         </div>
       </div>

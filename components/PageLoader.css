@@ -1,0 +1,212 @@
+/* -------------------------------------------------------------------------- */
+/*  R K B BUILDERS — 3D Tower Page Loader                                     */
+/* -------------------------------------------------------------------------- */
+
+.page-loader-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-bg, #ffffff);
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.45s ease;
+  pointer-events: all;
+  user-select: none;
+  touch-action: none;
+  overscroll-behavior: none;
+}
+
+.page-loader-overlay.fade-out {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.page-loader-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3.5rem;
+}
+
+/* 3D tower loader made by: csozi | Website: www.csozi.hu */
+.tower-loader {
+  transform: scale(2.6);
+  height: 50px;
+  width: 40px;
+  position: relative;
+}
+
+.tower-loader .box {
+  position: relative;
+  opacity: 0;
+  left: 10px;
+}
+
+.tower-loader .side-left {
+  position: absolute;
+  background-color: var(--loader-side-left, #0d6b63);
+  width: 19px;
+  height: 5px;
+  transform: skew(0deg, -25deg);
+  top: 14px;
+  left: 10px;
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.15);
+}
+
+.tower-loader .side-right {
+  position: absolute;
+  background-color: var(--loader-side-right, #14998d);
+  width: 19px;
+  height: 5px;
+  transform: skew(0deg, 25deg);
+  top: 14px;
+  left: -9px;
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.1);
+}
+
+.tower-loader .side-top {
+  position: absolute;
+  background-color: var(--loader-side-top, #60d8a0);
+  width: 20px;
+  height: 20px;
+  rotate: 45deg;
+  transform: skew(-20deg, -20deg);
+  box-shadow: 0 0 10px rgba(102, 220, 159, 0.25);
+}
+
+/* Animation keyframes and delays */
+.tower-loader .box-1 {
+  animation: tower-from-left 4s infinite cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.tower-loader .box-2 {
+  animation: tower-from-right 4s infinite cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation-delay: 1s;
+}
+
+.tower-loader .box-3 {
+  animation: tower-from-left 4s infinite cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation-delay: 2s;
+}
+
+.tower-loader .box-4 {
+  animation: tower-from-right 4s infinite cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation-delay: 3s;
+}
+
+@keyframes tower-from-left {
+  0% {
+    z-index: 20;
+    opacity: 0;
+    transform: translate(-20px, -6px);
+  }
+  20% {
+    z-index: 10;
+    opacity: 1;
+    transform: translate(0px, 0px);
+  }
+  40% {
+    z-index: 9;
+    transform: translate(0px, 4px);
+  }
+  60% {
+    z-index: 8;
+    transform: translate(0px, 8px);
+  }
+  80% {
+    z-index: 7;
+    opacity: 1;
+    transform: translate(0px, 12px);
+  }
+  100% {
+    z-index: 5;
+    transform: translate(0px, 30px);
+    opacity: 0;
+  }
+}
+
+@keyframes tower-from-right {
+  0% {
+    z-index: 20;
+    opacity: 0;
+    transform: translate(20px, -6px);
+  }
+  20% {
+    z-index: 10;
+    opacity: 1;
+    transform: translate(0px, 0px);
+  }
+  40% {
+    z-index: 9;
+    transform: translate(0px, 4px);
+  }
+  60% {
+    z-index: 8;
+    transform: translate(0px, 8px);
+  }
+  80% {
+    z-index: 7;
+    opacity: 1;
+    transform: translate(0px, 12px);
+  }
+  100% {
+    z-index: 5;
+    transform: translate(0px, 30px);
+    opacity: 0;
+  }
+}
+
+/* Branded text beneath loader */
+.page-loader-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  text-align: center;
+}
+
+.page-loader-title {
+  font-family: var(--font-mono, "Space Mono", monospace);
+  font-size: 0.76rem;
+  letter-spacing: 0.28em;
+  font-weight: 700;
+  color: var(--color-text, #000000);
+  text-transform: uppercase;
+  animation: loader-pulse 2s ease-in-out infinite;
+}
+
+.page-loader-subtitle {
+  font-family: var(--font-mono, "Space Mono", monospace);
+  font-size: 0.65rem;
+  letter-spacing: 0.16em;
+  color: var(--color-text-muted, rgba(0, 0, 0, 0.5));
+  text-transform: uppercase;
+}
+
+@keyframes loader-pulse {
+  0%, 100% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* Light / Dark variable tuning */
+:root {
+  --loader-side-left: #0c625a;
+  --loader-side-right: #118c81;
+  --loader-side-top: #56d498;
+}
+
+:root[data-theme="dark"] {
+  --loader-side-left: #083e39;
+  --loader-side-right: #0e857b;
+  --loader-side-top: #7fe389;
+}

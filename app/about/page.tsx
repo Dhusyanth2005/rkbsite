@@ -1,20 +1,14 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { siteApi, AboutData } from "@/services/api";
 import "./aboutstyle.css";
 
 /* -------------------------------------------------------------------------- */
 /*  Data                                                                      */
 /* -------------------------------------------------------------------------- */
-
-const CREDENTIALS = [
-  "B.E. — Civil Engineering",
-  "M.Plan — Urban Planning",
-  "Licensed & Govt. Registered Civil Engineer",
-  "Associate Member, Institute of Town Planners India (ITPI)",
-];
 
 const APART = [
   {
@@ -39,33 +33,34 @@ const APART = [
 /* -------------------------------------------------------------------------- */
 
 export default function AboutPage() {
+  const [aboutData, setAboutData] = useState<AboutData | null>(null);
+
+  useEffect(() => {
+    siteApi.getAbout().then((data) => {
+      if (data) setAboutData(data);
+    });
+  }, []);
+
   return (
     <main className="about-page">
       <div className="about-hero-desktop">
-        <AboutHero />
+        <AboutHero hero={aboutData?.hero} />
       </div>
-      <Leadership />
-      <PhilosophyMobile />
+      <Leadership leadership={aboutData?.leadership} />
+      <PhilosophyMobile hero={aboutData?.hero} />
       <WhatSetsUsApart />
     </main>
   );
 }
 
 /* ------------------------------ Scroll-Expand Hero ------------------------------ */
-/*
-   Signature moment for this page:
-   - At rest, the photo of Er. Tamilpriyan sits in a small, passport-sized
-     frame (portrait 3:4, echoing an ID photo), with his name and title as
-     a plain caption *below* the frame.
-   - As the visitor scrolls, the frame expands to fill the viewport. The
-     passport caption fades away, and the philosophy quote fades in,
-     overlaid on the bottom of the now full-bleed photo.
-*/
 
-function AboutHero() {
+function AboutHero({ hero }: { hero?: AboutData["hero"] }) {
   const sectionRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
+    if (!sectionRef.current) return;
+
     gsap.registerPlugin(ScrollTrigger);
 
     const ctx = gsap.context(() => {
@@ -84,140 +79,212 @@ function AboutHero() {
           },
         });
 
-        tl.to(".about-expand-media", {
-          width: "100vw",
-          height: "100vh",
-          borderRadius: 0,
-          ease: "none",
-        })
-          .to(".about-expand-frame-tick", { opacity: 0, scale: 0.6, ease: "none" }, "<")
-          .to(".about-passport-caption", { opacity: 0, y: -18, ease: "none" }, "<")
-          .to(".about-expand-veil", { opacity: 0.6, ease: "none" }, "<+=0.1")
-          .fromTo(
-            ".about-expand-philosophy",
+        const media = sectionRef.current?.querySelector(".about-expand-media");
+        if (media) {
+          tl.to(media, {
+            width: "100vw",
+            height: "100vh",
+            borderRadius: 0,
+            ease: "none",
+          });
+        }
+
+        const ticks = sectionRef.current?.querySelectorAll(".about-expand-frame-tick");
+        if (ticks && ticks.length > 0) {
+          tl.to(ticks, { opacity: 0, scale: 0.6, ease: "none" }, "<");
+        }
+
+        const caption = sectionRef.current?.querySelector(".about-passport-caption");
+        if (caption) {
+          tl.to(caption, { opacity: 0, y: -18, ease: "none" }, "<");
+        }
+
+        const veil = sectionRef.current?.querySelector(".about-expand-veil");
+        if (veil) {
+          tl.to(veil, { opacity: 0.6, ease: "none" }, "<+=0.1");
+        }
+
+        const philosophy = sectionRef.current?.querySelector(".about-expand-philosophy");
+        if (philosophy) {
+          tl.fromTo(
+            philosophy,
             { opacity: 0, y: 26 },
             { opacity: 1, y: 0, ease: "none" },
             "-=0.4"
           );
+        }
 
         return () => tl.scrollTrigger?.kill();
       });
 
       // Mobile: simple, non-pinned reveal — philosophy sits under the photo
       mm.add("(max-width: 779px)", () => {
-        gsap.from(".about-expand-media", {
-          scale: 0.92,
-          opacity: 0,
-          duration: 1,
-          ease: "power2.out",
-          scrollTrigger: { trigger: sectionRef.current, start: "top 75%" },
-        });
-        gsap.from(".about-passport-caption", {
-          y: 20,
-          opacity: 0,
-          duration: 0.8,
-          delay: 0.1,
-          ease: "power2.out",
-          scrollTrigger: { trigger: sectionRef.current, start: "top 75%" },
-        });
-        gsap.from(".about-mobile-philosophy", {
-          y: 20,
-          opacity: 0,
-          duration: 0.8,
-          ease: "power2.out",
-          scrollTrigger: { trigger: ".about-mobile-philosophy", start: "top 85%" },
-        });
+        const media = sectionRef.current?.querySelector(".about-expand-media");
+        if (media) {
+          gsap.from(media, {
+            scale: 0.92,
+            opacity: 0,
+            duration: 1,
+            ease: "power2.out",
+            scrollTrigger: { trigger: sectionRef.current, start: "top 75%" },
+          });
+        }
+
+        const caption = sectionRef.current?.querySelector(".about-passport-caption");
+        if (caption) {
+          gsap.from(caption, {
+            y: 20,
+            opacity: 0,
+            duration: 0.8,
+            delay: 0.1,
+            ease: "power2.out",
+            scrollTrigger: { trigger: sectionRef.current, start: "top 75%" },
+          });
+        }
+
+        const mobilePhil = sectionRef.current?.querySelector(".about-mobile-philosophy");
+        if (mobilePhil) {
+          gsap.from(mobilePhil, {
+            y: 20,
+            opacity: 0,
+            duration: 0.8,
+            ease: "power2.out",
+            scrollTrigger: { trigger: mobilePhil, start: "top 85%" },
+          });
+        }
       });
 
       return () => mm.revert();
     }, sectionRef);
 
     return () => ctx.revert();
-  }, []);
+  }, [hero]);
+
+  const portraitSrc = hero?.portrait?.url || "";
+  const portraitAlt = hero?.portrait?.alt || hero?.name || "Architect portrait";
+  const name = hero?.name || "";
+  const role = hero?.role || "";
+  const quote = hero?.philosophy_quote || "";
+  const quoteAttr = hero?.philosophy_attr || "";
 
   return (
     <section className="about-hero" id="about-hero" ref={sectionRef}>
       <div className="about-expand-stage">
         <div className="about-expand-media">
-          <img
-            src="/tamilpriyan-site.jpg"
-            alt="Er. R K B Tamilpriyan, Managing Director of R K B Builders"
-          />
+          {portraitSrc ? (
+            <img
+              src={portraitSrc}
+              alt={portraitAlt}
+            />
+          ) : (
+            <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg, #107068, #0a4d47)" }} />
+          )}
           <div className="about-expand-veil" aria-hidden="true" />
           <span className="about-expand-frame-tick corner-tl" aria-hidden="true" />
           <span className="about-expand-frame-tick corner-br" aria-hidden="true" />
 
           {/* Philosophy quote — hidden until the frame expands */}
-          <div className="about-expand-philosophy">
-            <blockquote className="about-expand-quote">
-              &ldquo;Our primordial principle is to construct structures that are in harmony with
-              both the client&rsquo;s interest and ecological sustenance.&rdquo;
-            </blockquote>
-            <p className="about-expand-quote-attr">— Er. R K B Tamilpriyan, Managing Director</p>
-          </div>
+          {quote && (
+            <div className="about-expand-philosophy">
+              <blockquote className="about-expand-quote">
+                &ldquo;{quote}&rdquo;
+              </blockquote>
+              {quoteAttr && <p className="about-expand-quote-attr">{quoteAttr}</p>}
+            </div>
+          )}
         </div>
 
         {/* Passport-style caption — visible only while the frame is small */}
-        <div className="about-passport-caption">
-          <p className="dim-eyebrow">R K B Builders · About Us</p>
-          <h1 className="about-passport-name">Er. R K B Tamilpriyan</h1>
-          <p className="about-passport-role">Civil Engineer &amp; Urban Planner</p>
-        </div>
+        {(name || role) && (
+          <div className="about-passport-caption">
+            <p className="dim-eyebrow">R K B Builders · About Us</p>
+            {name && <h1 className="about-passport-name">{name}</h1>}
+            {role && <p className="about-passport-role">{role}</p>}
+          </div>
+        )}
       </div>
 
-      {/* Mobile-only fallback: philosophy quote shown as plain text under the photo,
-          since the pinned overlay effect is disabled on small screens. */}
-      <p className="about-mobile-philosophy">
-        &ldquo;Our primordial principle is to construct structures that are in harmony with both
-        the client&rsquo;s interest and ecological sustenance.&rdquo;
-        <span>— Er. R K B Tamilpriyan, Managing Director</span>
-      </p>
+      {/* Mobile-only fallback */}
+      {quote && (
+        <p className="about-mobile-philosophy">
+          &ldquo;{quote}&rdquo;
+          {quoteAttr && <span>{quoteAttr}</span>}
+        </p>
+      )}
     </section>
   );
 }
 
 /* ---------------------------------- Leadership ---------------------------------- */
 
-function Leadership() {
+function Leadership({ leadership }: { leadership?: AboutData["leadership"] }) {
   const ref = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
+    if (!ref.current) return;
+
     gsap.registerPlugin(ScrollTrigger);
 
     const ctx = gsap.context(() => {
-      gsap.from(".leadership-photo-wrap", {
-        x: -40,
-        opacity: 0,
-        duration: 1,
-        ease: "power3.out",
-        scrollTrigger: { trigger: ref.current, start: "top 75%", toggleActions: "play none none reverse" },
-      });
+      const photoWrap = ref.current?.querySelector(".leadership-photo-wrap");
+      if (photoWrap) {
+        gsap.from(photoWrap, {
+          x: -40,
+          opacity: 0,
+          duration: 1,
+          ease: "power3.out",
+          scrollTrigger: { trigger: ref.current, start: "top 75%", toggleActions: "play none none reverse" },
+        });
+      }
 
-      const tl = gsap.timeline({
-        scrollTrigger: { trigger: ref.current, start: "top 72%", toggleActions: "play none none reverse" },
-        defaults: { ease: "power3.out", duration: 0.85 },
-      });
+      const content = ref.current?.querySelector(".leadership-content");
+      if (content) {
+        const tl = gsap.timeline({
+          scrollTrigger: { trigger: ref.current, start: "top 72%", toggleActions: "play none none reverse" },
+          defaults: { ease: "power3.out", duration: 0.85 },
+        });
 
-      tl.from(".leadership-content .dim-eyebrow", { y: 18, opacity: 0 })
-        .from(".leadership-name", { y: 26, opacity: 0 }, "-=0.6")
-        .from(".leadership-role", { y: 18, opacity: 0 }, "-=0.6")
-        .from(".leadership-credential", { x: -16, opacity: 0, stagger: 0.08 }, "-=0.45")
-        .from(".leadership-text", { y: 18, opacity: 0 }, "-=0.4");
+        const eyebrow = content.querySelector(".dim-eyebrow");
+        if (eyebrow) tl.from(eyebrow, { y: 18, opacity: 0 });
+
+        const nameEl = content.querySelector(".leadership-name");
+        if (nameEl) tl.from(nameEl, { y: 26, opacity: 0 }, "-=0.6");
+
+        const roleEl = content.querySelector(".leadership-role");
+        if (roleEl) tl.from(roleEl, { y: 18, opacity: 0 }, "-=0.6");
+
+        const creds = content.querySelectorAll(".leadership-credential");
+        if (creds && creds.length > 0) tl.from(creds, { x: -16, opacity: 0, stagger: 0.08 }, "-=0.45");
+
+        const textEl = content.querySelector(".leadership-text");
+        if (textEl) tl.from(textEl, { y: 18, opacity: 0 }, "-=0.4");
+      }
     }, ref);
 
     return () => ctx.revert();
-  }, []);
+  }, [leadership]);
+
+  const photoSrc = leadership?.photo?.url || "";
+  const photoAlt = leadership?.photo?.alt || leadership?.name || "Leadership photo";
+  const name = leadership?.name || "";
+  const role = leadership?.role || "";
+  const credentials = leadership?.credentials || [];
+  const bio = leadership?.bio || "";
 
   return (
     <section id="leadership" className="section-pad leadership" ref={ref}>
       <div className="container leadership-grid">
         <div className="leadership-photo-wrap dim-frame">
           <div className="leadership-photo">
-            <img
-              src="/preEdit.jpg"
-              alt="Er. R K B Tamilpriyan, Managing Director of R K B Builders, on site with architectural plans"
-              loading="lazy"
-            />
+            {photoSrc ? (
+              <img
+                src={photoSrc}
+                alt={photoAlt}
+                loading="lazy"
+              />
+            ) : (
+              <div style={{ width: "100%", height: "100%", background: "rgba(16, 112, 104, 0.08)" }} />
+            )}
           </div>
           <div className="leadership-tag">
             <b>G-04</b>
@@ -227,23 +294,20 @@ function Leadership() {
 
         <div className="leadership-content">
           <p className="dim-eyebrow">Leadership</p>
-          <h2 className="leadership-name">Er. R K B Tamilpriyan</h2>
-          <p className="leadership-role">Civil Engineer &amp; Urban Planner</p>
+          {name && <h2 className="leadership-name">{name}</h2>}
+          {role && <p className="leadership-role">{role}</p>}
 
-          <ul className="leadership-credentials">
-            {CREDENTIALS.map((c) => (
-              <li className="leadership-credential" key={c}>
-                {c}
-              </li>
-            ))}
-          </ul>
+          {credentials.length > 0 && (
+            <ul className="leadership-credentials">
+              {credentials.map((c, i) => (
+                <li className="leadership-credential" key={`${c}-${i}`}>
+                  {c}
+                </li>
+              ))}
+            </ul>
+          )}
 
-          <p className="leadership-text">
-            The fourth generation to lead R K B Builders, Er. Tamilpriyan pairs formal training in
-            civil engineering and urban planning with a family practice that stretches back to
-            1940 — bringing licensed, government-registered oversight to every drawing, site and
-            handover.
-          </p>
+          {bio && <p className="leadership-text">{bio}</p>}
         </div>
       </div>
     </section>
@@ -252,40 +316,53 @@ function Leadership() {
 
 /* ------------------------------ Mobile Philosophy ------------------------------ */
 
-function PhilosophyMobile() {
+function PhilosophyMobile({ hero }: { hero?: AboutData["hero"] }) {
   const ref = useRef<HTMLElement | null>(null);
+  const quote = hero?.philosophy_quote || "";
+  const quoteAttr = hero?.philosophy_attr || "";
 
   useEffect(() => {
+    if (!ref.current || !quote) return;
+
     gsap.registerPlugin(ScrollTrigger);
     const ctx = gsap.context(() => {
-      gsap.from(".phil-mobile-quote", {
-        y: 28,
-        opacity: 0,
-        duration: 1,
-        ease: "power3.out",
-        scrollTrigger: { trigger: ref.current, start: "top 82%" },
-      });
-      gsap.from(".phil-mobile-attr", {
-        y: 16,
-        opacity: 0,
-        duration: 0.8,
-        delay: 0.2,
-        ease: "power3.out",
-        scrollTrigger: { trigger: ref.current, start: "top 82%" },
-      });
+      const q = ref.current?.querySelector(".phil-mobile-quote");
+      if (q) {
+        gsap.from(q, {
+          y: 28,
+          opacity: 0,
+          duration: 1,
+          ease: "power3.out",
+          scrollTrigger: { trigger: ref.current, start: "top 82%" },
+        });
+      }
+
+      const attr = ref.current?.querySelector(".phil-mobile-attr");
+      if (attr) {
+        gsap.from(attr, {
+          y: 16,
+          opacity: 0,
+          duration: 0.8,
+          delay: 0.2,
+          ease: "power3.out",
+          scrollTrigger: { trigger: ref.current, start: "top 82%" },
+        });
+      }
     }, ref);
+
     return () => ctx.revert();
-  }, []);
+  }, [hero, quote]);
+
+  if (!quote) return null;
 
   return (
     <section className="phil-mobile section-pad" ref={ref} aria-label="Our philosophy">
       <div className="container">
         <p className="dim-eyebrow">Our Philosophy</p>
         <blockquote className="phil-mobile-quote">
-          &ldquo;Our primordial principle is to construct structures that are in harmony with
-          both the client&rsquo;s interest and ecological sustenance.&rdquo;
+          &ldquo;{quote}&rdquo;
         </blockquote>
-        <p className="phil-mobile-attr">— Er. R K B Tamilpriyan, Managing Director</p>
+        {quoteAttr && <p className="phil-mobile-attr">{quoteAttr}</p>}
       </div>
     </section>
   );
@@ -370,9 +447,6 @@ function WhatSetsUsApart() {
           ))}
         </div>
 
-        {/* Editorial closing statement — replaces a plain paragraph with a
-            two-part "promise" band: supporting copy on the left, a large
-            display statement + CTA on the right. */}
         <div className="apart-closing-band">
           <span className="apart-closing-rule" aria-hidden="true" />
 
@@ -394,7 +468,7 @@ function WhatSetsUsApart() {
               <p className="apart-closing-sub">
                 And we&rsquo;d be honoured to work with you to create your dream home.
               </p>
-              <a href="#contact" className="apart-closing-cta">
+              <a href="/contact" className="apart-closing-cta">
                 Start the conversation <span aria-hidden="true">→</span>
               </a>
             </div>

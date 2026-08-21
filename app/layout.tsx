@@ -3,6 +3,7 @@ import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import SmoothScroll from "@/components/SmoothScroll";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import PageLoader from "@/components/PageLoader";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -70,18 +71,16 @@ const SOCIAL_LINKS = [
 ];
 
 // Runs before hydration so the correct theme is painted on the very first
-// frame — prevents the light/dark flash on load.
+// frame — prevents the light/dark flash on load. Defaults to light theme.
 const THEME_INIT_SCRIPT = `
 (function () {
   try {
-    history.scrollRestoration = 'manual';
-    window.scrollTo(0, 0);
     var stored = localStorage.getItem("rkb-theme");
-    var theme = stored === "dark" || stored === "light"
-      ? stored
-      : (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    var theme = stored === "dark" || stored === "light" ? stored : "light";
     document.documentElement.setAttribute("data-theme", theme);
-  } catch (e) {}
+  } catch (e) {
+    document.documentElement.setAttribute("data-theme", "light");
+  }
 })();
 `;
 
@@ -171,12 +170,13 @@ function Footer() {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" data-theme="light" suppressHydrationWarning>
       <head>
         {/* eslint-disable-next-line @next/next/no-sync-scripts */}
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body id="top">
+        <PageLoader />
         <SmoothScroll>
           <Navbar />
           <main>{children}</main>
