@@ -89,6 +89,9 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
+    let hashTimer1: NodeJS.Timeout | null = null;
+    let hashTimer2: NodeJS.Timeout | null = null;
+
     const handleLoaderState = (e: Event) => {
       const customEvent = e as CustomEvent<{ loading: boolean }>;
       const isLoading = customEvent.detail?.loading;
@@ -97,29 +100,45 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
 
       if (isLoading) {
         lenisRef.current.stop();
-        // Keep window at top while loading unless on specific hash
-        if (!window.location.hash) {
-          lenisRef.current.scrollTo(0, { immediate: true });
-          window.scrollTo(0, 0);
-        }
+        if (hashTimer1) clearTimeout(hashTimer1);
+        if (hashTimer2) clearTimeout(hashTimer2);
       } else {
-        lenisRef.current.start();
-        ScrollTrigger.refresh();
+        // Wait for .rkb-loading class to be removed and layout to expand to full height
+        hashTimer1 = setTimeout(() => {
+          if (!lenisRef.current) return;
+          lenisRef.current.start();
+          ScrollTrigger.refresh();
 
-        // If landing on a hash section, scroll to it smoothly now that page is ready
-        if (window.location.hash) {
-          const el = document.querySelector(window.location.hash) as HTMLElement | null;
-          if (el) {
-            const top = el.getBoundingClientRect().top + window.scrollY - 70;
-            lenisRef.current.scrollTo(top, { duration: 1.2 });
+          const hash = window.location.hash;
+          if (hash) {
+            const el = document.querySelector(hash) as HTMLElement | null;
+            if (el) {
+              const top = el.getBoundingClientRect().top + window.pageYOffset - 70;
+              lenisRef.current.scrollTo(top, { duration: 1.2 });
+            }
           }
-        }
+        }, 80);
+
+        // Follow-up adjustment once GSAP timeline pinning finishes measuring
+        hashTimer2 = setTimeout(() => {
+          const hash = window.location.hash;
+          if (hash && lenisRef.current) {
+            ScrollTrigger.refresh();
+            const el = document.querySelector(hash) as HTMLElement | null;
+            if (el) {
+              const top = el.getBoundingClientRect().top + window.pageYOffset - 70;
+              lenisRef.current.scrollTo(top, { duration: 0.6 });
+            }
+          }
+        }, 450);
       }
     };
 
     window.addEventListener("rkb:loader-state", handleLoaderState);
     return () => {
       window.removeEventListener("rkb:loader-state", handleLoaderState);
+      if (hashTimer1) clearTimeout(hashTimer1);
+      if (hashTimer2) clearTimeout(hashTimer2);
     };
   }, []);
 
