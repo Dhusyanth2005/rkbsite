@@ -70,7 +70,7 @@ const LEGACY = [
   {
     code: "G-04",
     name: "Er. R. K. B. Tamilpriyan",
-    role: "BE, M.Plan · Managing Director",
+    role: "ME, M.Plan · Managing Director",
     desc: "Leads R K B Builders today, continuing four generations of building experience.",
     current: true,
   },
@@ -820,10 +820,32 @@ function WhyUs() {
 /* ------------------------------ Certifications ------------------------------ */
 
 const CERTS = [
-  { code: "ISO 9001:2015", label: "Quality Management" },
-  { code: "ISO 14001:2015", label: "Environmental Management" },
-  { code: "IAF", label: "Accredited" },
-  { code: "MSME", label: "Registered" },
+  {
+    code: "ISO 9001:2015",
+    label: "Quality Management",
+    image: "/ISO-9001-2015.jpg",
+    scale: 1.1,
+  },
+  {
+    code: "ISO 14001:2015",
+    label: "Environmental Management",
+    image: "/iso-14001-2015.jpg",
+    
+  },
+  {
+    code: "IAF",
+    label: "Accredited",
+    image: "/IAF-Certification.png",
+    scale: 1.4,
+    offsetX: 6,
+    offsetY: -6,
+  },
+  {
+    code: "MSME",
+    label: "Registered",
+    image: "/IMG_1181.jpeg",
+    scale: 1.7,
+  },
 ];
 
 function Certifications() {
@@ -881,9 +903,27 @@ function Certifications() {
           {CERTS.map((cert) => (
             <div className="cert-seal" key={cert.code}>
               <div className="cert-seal-ring">
-                <span className="cert-seal-code">{cert.code}</span>
+                <div className="cert-seal-img-wrapper">
+                  <Image
+                    src={cert.image}
+                    alt={`${cert.code} - ${cert.label}`}
+                    fill
+                    sizes="(max-width: 768px) 130px, 150px"
+                    className="cert-seal-img"
+                    style={
+                      {
+                        "--img-scale": cert.scale ?? 1,
+                        "--img-x": cert.offsetX ? `${cert.offsetX}px` : "0px",
+                        "--img-y": cert.offsetY ? `${cert.offsetY}px` : "0px",
+                      } as React.CSSProperties
+                    }
+                  />
+                </div>
               </div>
-              <span className="cert-seal-label">{cert.label}</span>
+              <div className="cert-seal-info">
+                <span className="cert-seal-code">{cert.code}</span>
+                <span className="cert-seal-label">{cert.label}</span>
+              </div>
             </div>
           ))}
         </div>

@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import emailjs from "@emailjs/browser";
+import { CheckCircle2 } from "lucide-react";
 import "./contactstyle.css";
 
 /* -------------------------------------------------------------------------- */
@@ -234,17 +236,76 @@ const EMPTY_FORM: FormState = { name: "", phone: "", email: "", message: "" };
 
 function ContactForm() {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
-  const [status, setStatus] = useState<"idle" | "sent">("idle");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [statusMessage, setStatusMessage] = useState<string>("");
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // Wire this up to your form handler / API route of choice.
-    setStatus("sent");
-    setForm(EMPTY_FORM);
+
+    const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+    const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
+    const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+
+    if (!serviceId || !templateId || !publicKey) {
+      console.warn("EmailJS credentials missing from environment variables.");
+      setStatus("error");
+      setStatusMessage("Email service is not configured. Please set EmailJS keys in .env.local.");
+      return;
+    }
+
+    try {
+      setStatus("loading");
+      setStatusMessage("");
+
+      const templateParams = {
+        name: form.name,
+        from_name: form.name,
+        phone: form.phone,
+        contact_number: form.phone,
+        email: form.email,
+        from_email: form.email,
+        reply_to: form.email,
+        message: form.message,
+      };
+
+      await emailjs.send(serviceId, templateId, templateParams, publicKey);
+
+      setStatus("success");
+      setStatusMessage("");
+      setForm(EMPTY_FORM);
+    } catch (err) {
+      console.error("EmailJS Error:", err);
+      setStatus("error");
+      setStatusMessage("Failed to send message. Please try again or reach us via phone/WhatsApp.");
+    }
+  }
+
+  if (status === "success") {
+    return (
+      <div className="contact-success-card">
+        <div className="contact-success-icon-wrap">
+          <CheckCircle2 size={46} strokeWidth={2.3} />
+        </div>
+        <h3 className="contact-success-title">Message Sent Successfully!</h3>
+        <p className="contact-success-desc">
+          Thank you for reaching out. We have received your inquiry and our team will get back to you shortly.
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            setStatus("idle");
+            setStatusMessage("");
+          }}
+          className="btn btn-primary contact-success-btn"
+        >
+          Send another message
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -258,6 +319,7 @@ function ContactForm() {
             value={form.name}
             onChange={(e) => update("name", e.target.value)}
             placeholder="Your full name"
+            disabled={status === "loading"}
           />
         </label>
         <label className="contact-field">
@@ -268,6 +330,7 @@ function ContactForm() {
             value={form.phone}
             onChange={(e) => update("phone", e.target.value)}
             placeholder="+91 00000 00000"
+            disabled={status === "loading"}
           />
         </label>
       </div>
@@ -280,6 +343,7 @@ function ContactForm() {
           value={form.email}
           onChange={(e) => update("email", e.target.value)}
           placeholder="you@example.com"
+          disabled={status === "loading"}
         />
       </label>
 
@@ -291,14 +355,19 @@ function ContactForm() {
           value={form.message}
           onChange={(e) => update("message", e.target.value)}
           placeholder="Plot size, location, and what you have in mind…"
+          disabled={status === "loading"}
         />
       </label>
 
       <div className="contact-form-footer">
-        <button type="submit" className="btn btn-primary">
-          Send message
+        <button type="submit" className="btn btn-primary" disabled={status === "loading"}>
+          {status === "loading" ? "Sending..." : "Send message"}
         </button>
-        {status === "sent" && <span className="contact-form-status">Thanks — we&rsquo;ll be in touch shortly.</span>}
+        {statusMessage && (
+          <span className={`contact-form-status ${status === "error" ? "error" : "success"}`}>
+            {statusMessage}
+          </span>
+        )}
       </div>
     </form>
   );

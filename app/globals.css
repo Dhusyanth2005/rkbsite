@@ -1441,60 +1441,116 @@ html.lenis body {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: clamp(28px, 5vw, 56px);
-  margin-top: 68px;
+  gap: clamp(28px, 4.5vw, 52px);
+  margin-top: 60px;
 }
 
 .cert-seal {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
-  width: 148px;
+  gap: 16px;
+  width: 170px;
+  text-align: center;
+  transition: transform 0.35s var(--ease);
+}
+
+.cert-seal:hover {
+  transform: translateY(-6px);
 }
 
 .cert-seal-ring {
   position: relative;
-  width: 128px;
-  height: 128px;
+  width: 136px;
+  height: 136px;
   border-radius: 50%;
-  border: 2px solid var(--color-accent);
-  display: grid;
-  place-items: center;
-  transition: transform 0.35s var(--ease), border-color 0.35s var(--ease);
+  background: #ffffff;
+  border: 2px solid var(--color-border-strong);
+  box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  transition: transform 0.35s var(--ease), border-color 0.35s var(--ease), box-shadow 0.35s var(--ease);
 }
 
 .cert-seal-ring::before {
   content: "";
   position: absolute;
-  inset: 9px;
+  inset: -6px;
   border-radius: 50%;
-  border: 1px dashed var(--color-border-strong);
+  border: 1px dashed var(--color-accent);
+  opacity: 0.4;
+  transition: opacity 0.35s var(--ease), transform 0.45s var(--ease);
+  pointer-events: none;
 }
 
 .cert-seal:hover .cert-seal-ring {
-  transform: rotate(-6deg) scale(1.05);
+  border-color: var(--color-accent);
+  box-shadow: 0 16px 32px -8px var(--shadow-soft);
+  transform: scale(1.05);
+}
+
+.cert-seal:hover .cert-seal-ring::before {
+  opacity: 0.9;
+  transform: rotate(20deg);
+}
+
+.cert-seal-img-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  padding: 8px;
+}
+
+.cert-seal-img {
+  object-fit: contain;
+  padding: 4px;
+  transform: translate(var(--img-x, 0px), var(--img-y, 0px)) scale(var(--img-scale, 1));
+  transition: transform 0.35s var(--ease);
+}
+
+.cert-seal:hover .cert-seal-img {
+  transform: translate(var(--img-x, 0px), var(--img-y, 0px)) scale(calc(var(--img-scale, 1) * 1.08));
+}
+
+.cert-seal-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
 }
 
 .cert-seal-code {
   font-family: var(--font-mono);
   font-weight: 700;
-  font-size: 13px;
-  letter-spacing: 0.03em;
-  color: var(--color-accent);
+  font-size: 13.5px;
+  letter-spacing: 0.02em;
+  color: var(--color-text);
   text-align: center;
-  padding-inline: 12px;
   line-height: 1.35;
+  transition: color 0.3s var(--ease);
+}
+
+.cert-seal:hover .cert-seal-code {
+  color: var(--color-accent);
 }
 
 .cert-seal-label {
   font-family: var(--font-mono);
   font-size: 11px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--color-text-faint);
   text-align: center;
-  max-width: 16ch;
+  max-width: 18ch;
+  line-height: 1.4;
 }
 
 /* -------------------------- Floating WhatsApp Button -------------------------- */

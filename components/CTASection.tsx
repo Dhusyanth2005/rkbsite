@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Link from "next/link";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -18,7 +19,7 @@ export default function CTASection({
   title = "Ready to build your dream home?",
   description = "Call us today and let's turn your land into a home you'll love for generations.",
   buttonText = "Call us today",
-  buttonHref = "tel:+916380170943",
+  buttonHref = "/contact",
   className = "",
 }: CTASectionProps) {
   const ref = useRef<HTMLElement | null>(null);
@@ -58,13 +59,13 @@ export default function CTASection({
             <h3>{title}</h3>
             <p>{description}</p>
           </div>
-          <a
+          <Link
             href={buttonHref}
             className="btn"
             style={{ background: "var(--color-on-accent)", color: "var(--color-accent)" }}
           >
             {buttonText}
-          </a>
+          </Link>
         </div>
       </div>
     </section>
