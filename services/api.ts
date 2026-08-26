@@ -1,7 +1,7 @@
 const BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL ||
   process.env.VITE_API_BASE_URL ||
-  'https://rkbserver.vercel.app/api'
+  'https://rkbserver.onrender.com/api'
 ).replace(/\/+$/, '');
 
 export interface CloudinaryMedia {
