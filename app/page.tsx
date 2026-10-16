@@ -96,10 +96,23 @@ export default function Home() {
 
 /* ---------------------------------- Hero ---------------------------------- */
 
+/** Returns "dark" when the <html> element carries a dark-theme signal. */
+function getActiveTheme(): "light" | "dark" {
+  const html = document.documentElement;
+  return html.classList.contains("dark") ||
+    html.getAttribute("data-theme") === "dark" ||
+    html.getAttribute("data-color-scheme") === "dark"
+    ? "dark"
+    : "light";
+}
+
 function Hero() {
   const containerRef = useRef<HTMLElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const [heroData, setHeroData] = useState<HeroData | null>(null);
+  const [theme, setTheme] = useState<"light" | "dark">("light");
 
+  // Fetch hero data
   useEffect(() => {
     siteApi.getHero().then((data) => {
       if (data && (data.video_light?.url || data.video_dark?.url || data.poster?.url)) {
@@ -107,6 +120,40 @@ function Hero() {
       }
     });
   }, []);
+
+  // Detect initial theme and watch for changes via MutationObserver
+  useEffect(() => {
+    setTheme(getActiveTheme());
+
+    const observer = new MutationObserver(() => setTheme(getActiveTheme()));
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class", "data-theme", "data-color-scheme"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  // Pause video when hero is off-screen; resume when it returns
+  useEffect(() => {
+    const section = containerRef.current;
+    if (!section) return;
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        const video = videoRef.current;
+        if (!video) return;
+        if (entry.isIntersecting) {
+          video.play().catch(() => {/* autoplay policy — silently ignore */});
+        } else {
+          video.pause();
+        }
+      },
+      { threshold: 0.25 }
+    );
+
+    io.observe(section);
+    return () => io.disconnect();
+  }, [heroData, theme]); // re-wire whenever the rendered video changes
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -171,33 +218,26 @@ function Hero() {
   const videoDarkSrc = heroData?.video_dark?.url || "";
   const posterSrc = heroData?.poster?.url || undefined;
 
+  // Only mount the video that matches the active theme — avoids loading both streams
+  const activeSrc = theme === "dark" ? videoDarkSrc : videoLightSrc;
+  const activeClass = theme === "dark" ? "hero-video hero-video-dark" : "hero-video hero-video-light";
+
   return (
     <section className="hero" id="home" ref={containerRef}>
       <div className="hero-media">
-        {videoLightSrc && (
+        {activeSrc && (
           <video
-            key={videoLightSrc}
-            className="hero-video hero-video-light"
+            ref={videoRef}
+            key={activeSrc}
+            className={activeClass}
             autoPlay
             muted
             loop
             playsInline
+            preload="metadata"
             poster={posterSrc}
           >
-            <source src={videoLightSrc} type="video/mp4" />
-          </video>
-        )}
-        {videoDarkSrc && (
-          <video
-            key={videoDarkSrc}
-            className="hero-video hero-video-dark"
-            autoPlay
-            muted
-            loop
-            playsInline
-            poster={posterSrc}
-          >
-            <source src={videoDarkSrc} type="video/mp4" />
+            <source src={activeSrc} type="video/mp4" />
           </video>
         )}
       </div>
