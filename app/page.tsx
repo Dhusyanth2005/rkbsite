@@ -63,7 +63,7 @@ const LEGACY = [
   },
   {
     code: "G-03",
-    name: "Mr. R. K. Bala & R. K. Mani",
+    name: "Mr. R. K. Bala",
     role: "MA, B.Ed · Third Generation",
     desc: "Expanded the company's reach into houses, buildings and apartment construction.",
   },
