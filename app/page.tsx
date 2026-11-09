@@ -5,7 +5,20 @@ import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import CTASection from "@/components/CTASection";
+import ScrollStack, { ScrollStackItem } from "@/components/ScrollStack";
 import { siteApi, HeroData, WorkItem } from "@/services/api";
+
+// Local project images for the ScrollShowcase
+import pic1 from "@/app/assets/pic1.jpeg";
+import pic2 from "@/app/assets/pic2.jpeg";
+import pic3 from "@/app/assets/pic3.jpeg";
+import pic4 from "@/app/assets/pic4.jpeg";
+import pic5 from "@/app/assets/pic5.jpeg";
+import pic6 from "@/app/assets/pic6.jpeg";
+import pic7 from "@/app/assets/pic7.jpeg";
+import pic8 from "@/app/assets/pic8.jpeg";
+import pic9 from "@/app/assets/pic9.jpeg";
+import pic10 from "@/app/assets/pic10.jpeg";
 
 /* -------------------------------------------------------------------------- */
 /*  Utilities                                                                 */
@@ -88,6 +101,7 @@ export default function Home() {
       <Legacy />
       <Works />
       <WhyUs />
+      <ScrollShowcase />
       <Certifications />
       <CTASection />
     </>
@@ -322,17 +336,15 @@ function About() {
         .from(".about-subhead", { y: 20, opacity: 0 }, "-=0.7")
         .from(".about-text", { y: 25, opacity: 0, stagger: 0.15 }, "-=0.6")
         .from(
-          ".about-stat",
+          ".about-service-item",
           {
-            x: -20,
+            x: -16,
             opacity: 0,
-            stagger: 0.12,
-            onStart: () => {
-              animateCountUp(ref.current?.querySelectorAll<HTMLElement>(".about-stat b"));
-            },
+            stagger: 0.08,
           },
           "-=0.5"
-        );
+        )
+        .from(".about-service-note", { opacity: 0, y: 8 }, "-=0.2");
 
       gsap.from(".about-image-wrap", {
         scale: 0.92,
@@ -354,9 +366,6 @@ function About() {
         duration: 0.8,
         ease: "back.out(1.7)",
         delay: 0.2,
-        onStart: () => {
-          animateCountUp(ref.current?.querySelectorAll<HTMLElement>(".about-tag b"));
-        },
         scrollTrigger: {
           trigger: ".about-image-wrap",
           start: "top 82%",
@@ -386,20 +395,27 @@ function About() {
             buildings and apartments, with our own in-house construction services at every stage.
           </p>
 
-          <div className="about-stats">
-            <div className="about-stat">
-              <b>1940</b>
-              <span>Est. in Tamil Nadu</span>
-            </div>
-            <div className="about-stat">
-              <b>3</b>
-              <span>Building types</span>
-            </div>
-            <div className="about-stat">
-              <b>In-house</b>
-              <span>Design &amp; construction</span>
-            </div>
-          </div>
+          <ul className="about-services">
+            {[
+              "Building Plan Approval",
+              "Exterior Design",
+              "Interior Design",
+              "3D Elevation Design",
+              "2D Floor Plan",
+            ].map((service) => (
+              <li key={service} className="about-service-item">
+                <span className="about-service-check" aria-hidden="true">
+                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+                    <path d="M2 6.5l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </span>
+                {service}
+              </li>
+            ))}
+            <li className="about-service-note">
+              All Building Design &amp; Approval Services Available.
+            </li>
+          </ul>
         </div>
 
         <div className="about-image-wrap dim-frame">
@@ -453,9 +469,6 @@ function Legacy() {
         stagger: 0.12,
         duration: 0.8,
         ease: "power3.out",
-        onStart: () => {
-          animateCountUp(ref.current?.querySelectorAll<HTMLElement>(".stat-card b"));
-        },
         scrollTrigger: {
           trigger: ".legacy-stats",
           start: "top 82%",
@@ -805,9 +818,6 @@ function WhyUs() {
         stagger: 0.15,
         duration: 1.0,
         ease: "power3.out",
-        onStart: () => {
-          animateCountUp(ref.current?.querySelectorAll<HTMLElement>(".whyus-card-value"));
-        },
         scrollTrigger: {
           trigger: ".whyus-grid",
           start: "top 80%",
@@ -853,6 +863,76 @@ function WhyUs() {
           ))}
         </div>
       </div>
+    </section>
+  );
+}
+
+/* ---------------------------- Scroll Showcase ----------------------------- */
+
+const SHOWCASE_ITEMS = [
+  { image: pic1  },
+  { image: pic2  },
+  { image: pic3  },
+  { image: pic4  },
+  { image: pic5  },
+  { image: pic6  },
+  { image: pic7  },
+  { image: pic8  },
+  { image: pic9  },
+  { image: pic10 },
+];
+
+function ScrollShowcase() {
+  return (
+    <section id="showcase" className="showcase-section">
+      {/* Section header — sits in the normal flow above the stack */}
+      <div className="container showcase-header">
+        <p className="dim-eyebrow">Our Portfolio</p>
+        <h2 className="showcase-title">Spaces we&rsquo;ve brought to life.</h2>
+        <p className="showcase-sub">
+          A glimpse into the homes, buildings and communities built across Tamil Nadu.
+        </p>
+      </div>
+
+      <ScrollStack
+        useWindowScroll
+        itemDistance={80}
+        itemStackDistance={20}
+        stackPosition="8%"
+        dimAmount={0.55}
+        blurAmount={1.5}
+        baseScale={0.88}
+        itemScale={0.04}
+        holdDistance={300}
+        smoothScroll
+      >
+        {SHOWCASE_ITEMS.map((item, i) => (
+          <ScrollStackItem
+            key={i}
+            style={{ height: "clamp(22rem, 55vh, 36rem)", padding: 0 }}
+          >
+            {/* Background image */}
+            <div className="showcase-card-img">
+              <Image
+                src={item.image}
+                alt={`Project ${i + 1} by R K B Builders`}
+                fill
+                sizes="(max-width: 768px) 100vw, 90vw"
+                className="showcase-card-photo"
+                style={{ objectFit: "cover" }}
+              />
+            </div>
+
+            {/* Minimal overlay — index only */}
+            <div className="showcase-card-body">
+              <span className="showcase-card-index">
+                {String(i + 1).padStart(2, "0")}&nbsp;/&nbsp;
+                {String(SHOWCASE_ITEMS.length).padStart(2, "0")}
+              </span>
+            </div>
+          </ScrollStackItem>
+        ))}
+      </ScrollStack>
     </section>
   );
 }

@@ -676,31 +676,49 @@ section {
   max-width: 52ch;
 }
 
-.about-stats {
+.about-services {
+  list-style: none;
+  margin-top: 32px;
   display: flex;
-  gap: 32px;
-  margin-top: 36px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0;
 }
 
-.about-stat {
-  padding-left: 16px;
-  border-left: 2px solid var(--color-secondary);
+.about-service-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--color-text);
+  padding: 11px 0;
+  border-bottom: 1px solid var(--color-border);
+  transition: color 0.2s ease;
 }
 
-.about-stat b {
-  display: block;
-  font-family: var(--font-body);
-  font-size: 24px;
-  font-weight: 700;
+.about-service-item:first-child {
+  border-top: 1px solid var(--color-border);
 }
 
-.about-stat span {
+.about-service-check {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  color: var(--color-accent);
+}
+
+.about-service-note {
+  margin-top: 14px;
   font-family: var(--font-mono);
-  font-size: 10.5px;
-  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: var(--color-text-faint);
+  color: var(--color-accent);
+  padding-left: 2px;
 }
 
 .about-image-wrap {
@@ -1414,6 +1432,93 @@ html.lenis body {
 @media (max-width: 900px) {
   .whyus-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* -------------------------------- Scroll Showcase -------------------------------- */
+
+.showcase-section {
+  /* Extra breathing room so the stack has space above & below */
+  padding-block: 6rem 0;
+}
+
+.showcase-header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.showcase-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--color-text);
+  margin-top: 0.5rem;
+}
+
+.showcase-sub {
+  margin-top: 0.9rem;
+  font-size: 1.0625rem;
+  color: var(--color-text-muted);
+  max-width: 520px;
+  margin-inline: auto;
+  line-height: 1.6;
+}
+
+/* ---- The image fill inside each card ---- */
+.showcase-card-img {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+}
+
+.showcase-card-photo {
+  transition: transform 0.6s ease !important;
+}
+
+.scroll-stack-card:hover .showcase-card-photo {
+  transform: scale(1.03) !important;
+}
+
+/* ---- Minimal overlay — index counter top-left only ---- */
+.showcase-card-body {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.6rem 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  /* Soft top vignette so the counter stays readable */
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.35) 0%,
+      transparent 25%
+    );
+}
+
+.showcase-card-index {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+@media (max-width: 600px) {
+  .showcase-section {
+    padding-top: 4rem;
+  }
+
+  .showcase-header {
+    margin-bottom: 2.5rem;
+  }
+
+  .showcase-card-body {
+    padding: 1.2rem 1.4rem;
   }
 }
 
