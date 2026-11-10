@@ -110,41 +110,18 @@ export default function Home() {
 
 /* ---------------------------------- Hero ---------------------------------- */
 
-/** Returns "dark" when the <html> element carries a dark-theme signal. */
-function getActiveTheme(): "light" | "dark" {
-  const html = document.documentElement;
-  return html.classList.contains("dark") ||
-    html.getAttribute("data-theme") === "dark" ||
-    html.getAttribute("data-color-scheme") === "dark"
-    ? "dark"
-    : "light";
-}
-
 function Hero() {
   const containerRef = useRef<HTMLElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [heroData, setHeroData] = useState<HeroData | null>(null);
-  const [theme, setTheme] = useState<"light" | "dark">("light");
 
   // Fetch hero data
   useEffect(() => {
     siteApi.getHero().then((data) => {
-      if (data && (data.video_light?.url || data.video_dark?.url || data.poster?.url)) {
+      if (data && (data.video_light?.url || data.poster?.url)) {
         setHeroData(data);
       }
     });
-  }, []);
-
-  // Detect initial theme and watch for changes via MutationObserver
-  useEffect(() => {
-    setTheme(getActiveTheme());
-
-    const observer = new MutationObserver(() => setTheme(getActiveTheme()));
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class", "data-theme", "data-color-scheme"],
-    });
-    return () => observer.disconnect();
   }, []);
 
   // Pause video when hero is off-screen; resume when it returns
@@ -167,7 +144,7 @@ function Hero() {
 
     io.observe(section);
     return () => io.disconnect();
-  }, [heroData, theme]); // re-wire whenever the rendered video changes
+  }, [heroData]);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -228,22 +205,16 @@ function Hero() {
     return () => ctx.revert();
   }, []);
 
-  const videoLightSrc = heroData?.video_light?.url || "";
-  const videoDarkSrc = heroData?.video_dark?.url || "";
+  const videoSrc = heroData?.video_light?.url || "";
   const posterSrc = heroData?.poster?.url || undefined;
-
-  // Only mount the video that matches the active theme — avoids loading both streams
-  const activeSrc = theme === "dark" ? videoDarkSrc : videoLightSrc;
-  const activeClass = theme === "dark" ? "hero-video hero-video-dark" : "hero-video hero-video-light";
 
   return (
     <section className="hero" id="home" ref={containerRef}>
       <div className="hero-media">
-        {activeSrc && (
+        {videoSrc && (
           <video
             ref={videoRef}
-            key={activeSrc}
-            className={activeClass}
+            className="hero-video"
             autoPlay
             muted
             loop
@@ -251,7 +222,7 @@ function Hero() {
             preload="metadata"
             poster={posterSrc}
           >
-            <source src={activeSrc} type="video/mp4" />
+            <source src={videoSrc} type="video/mp4" />
           </video>
         )}
       </div>
